@@ -1,0 +1,26 @@
+from flask import Flask, jsonify
+import redis
+
+app = Flask(__name__)
+redis_client = redis.Redis(host='redis', port=6379, db=0)
+
+@app.route('/ping')
+def ping():
+    return jsonify({"status": "ok"})
+
+@app.route('/count')
+def count():
+    try:
+        visits = redis_client.incr('counter')
+        return jsonify({
+            "status": "ok",
+            "visit_count": visits
+        })
+    except redis.RedisError as e:
+        return jsonify({
+            "status": "error",
+            "message": f"Redis connection error: {str(e)}"
+        }), 500
+
+if __name__ == '__main__':
+    app.run(host='0.0.0.0', port=5000)
